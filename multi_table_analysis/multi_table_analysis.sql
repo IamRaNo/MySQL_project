@@ -21,9 +21,40 @@ where o.customerNumber is null;
 -- there is no customer who made payment but did not ordered.
 
 # 4. Find the average time taken to ship orders for each customer.
+select c.customerNumber ,c.customerName, avg(datediff(shippedDate,orderDate))as avg_time,count(o.customerNumber) as total_orders from orders o
+join customers c on o.customerNumber=c.customerNumber
+group by o.customerNumber
+order by avg_time desc;
+
 # 5. Identify customers with the highest payment amounts and their corresponding sales reps.
+select c.customerName,e.firstName as employee_name,sum(amount) as total_value from payments p
+join customers c on p.customerNumber=c.customerNumber
+join employees e on c.salesRepEmployeeNumber=e.employeeNumber
+group by p.customerNumber
+order by total_value desc;
+
 # 6. Which customers have exceeded their credit limit when considering total order value vs credit limit?
+select *,total_price-creditLimit as difference from (
+select  sum((od.quantityOrdered*od.priceEach)) as total_price,c.customerNumber,c.creditLimit
+from orderdetails od
+join orders o on od.orderNumber = o.orderNumber
+join customers c on c.customerNumber = o.customerNumber
+join employees e on e.employeeNumber = c.salesRepEmployeeNumber
+where o.status='shipped'
+group by c.customerNumber
+having total_price>creditLimit) t
+order by difference desc;
+
 # 7. Find the top 5 customers by total order value (from orderdetails) and compare with their total payments.
+select *, (total_order - total_payment) as due from(
+select od.orderNumber,sum((quantityOrdered*priceEach))as total_order,sum(amount) as total_payment from orderdetails od
+join orders o on od.orderNumber=o.orderNumber
+join customers c on c.customerNumber=o.customerNumber
+join payments p on p.customerNumber=c.customerNumber
+group by c.customerNumber) t
+order by due asc;
+
+
 # 8. List all orders that were shipped late along with the customer name and sales rep.
 # 9. Which employees manage the customers with the highest total payments?
 # 10. Show the employees and their customers who have never placed an order.
