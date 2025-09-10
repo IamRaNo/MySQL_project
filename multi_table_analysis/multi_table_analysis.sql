@@ -54,10 +54,26 @@ join payments p on p.customerNumber=c.customerNumber
 group by c.customerNumber) t
 order by due asc;
 
-
 # 8. List all orders that were shipped late along with the customer name and sales rep.
+select o.orderNumber,c.customerName,e.firstName from orders o
+join customers c on c.customerNumber = o.customerNumber
+join employees e on e.employeeNumber = c.salesRepEmployeeNumber
+where shippedDate>requiredDate;
+
 # 9. Which employees manage the customers with the highest total payments?
+select c.customerName,e.firstName,od.orderNumber,sum(priceEach*quantityOrdered) as total_value from orderdetails od
+join orders o on o.orderNumber=od.orderNumber
+join customers c on o.customerNumber=c.customerNumber
+join employees e on e.employeeNumber=c.salesRepEmployeeNumber
+group by od.orderNumber
+order by total_value desc
+limit 10;
+
 # 10. Show the employees and their customers who have never placed an order.
+select c.customerNumber,c.customerName,e.firstName from orders o
+right join customers c on c.customerNumber=o.customerNumber
+join employees e on c.salesRepEmployeeNumber=e.employeeNumber
+where o.orderNumber is null;
 
 # 11. Find the product lines with the highest total sales revenue.
 # 12. List the top 10 best-selling products (by quantity ordered) across all customers.
